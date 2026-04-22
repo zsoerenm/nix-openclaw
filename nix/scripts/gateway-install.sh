@@ -147,6 +147,15 @@ if [ -n "${MATRIX_CRYPTO_LIB:-}" ] && [ -n "${MATRIX_CRYPTO_LIB_FILENAME:-}" ]; 
   done
 fi
 
+# Bump hardcoded typing-indicator TTL from 2 min to 10 min. The 2-min default
+# in get-reply-*.js is shorter than realistic Claude tool-use turns, so the
+# "typing..." indicator disappears even while the agent is still working.
+# No config option exposes this; patch the literal directly.
+for f in "$out/lib/openclaw/dist"/get-reply-*.js; do
+  [ -f "$f" ] || continue
+  sed -i 's/typingTtlMs = 2 \* 6e4/typingTtlMs = 10 * 6e4/g' "$f"
+done
+
 log_step "validate node_modules symlinks" check_no_broken_symlinks "$out/lib/openclaw/node_modules"
 
 bash -e -c '. "$STDENV_SETUP"; makeWrapper "$NODE_BIN" "$out/bin/openclaw" --add-flags "$out/lib/openclaw/dist/index.js" --set-default OPENCLAW_NIX_MODE "1"'
