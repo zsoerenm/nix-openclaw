@@ -190,6 +190,10 @@ in
           type = t.nullOr (t.enum [ "claude-stream-json" ]);
           default = null;
         };
+        liveSession = lib.mkOption {
+          type = t.nullOr (t.enum [ "claude-stdio" ]);
+          default = null;
+        };
         maxPromptArgChars = lib.mkOption {
           type = t.nullOr (t.int);
           default = null;
