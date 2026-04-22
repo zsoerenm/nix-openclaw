@@ -128,6 +128,13 @@ if [ -n "$hasown_src" ]; then
   fi
 fi
 
+# Extensions import from "openclaw/plugin-sdk/..." at runtime. The main package's
+# own name is "openclaw" but it isn't present in node_modules (it IS the root).
+# Add a self-referential symlink so Node's ESM resolver can find these imports.
+if [ ! -e "$out/lib/openclaw/node_modules/openclaw" ]; then
+  ln -s .. "$out/lib/openclaw/node_modules/openclaw"
+fi
+
 log_step "validate node_modules symlinks" check_no_broken_symlinks "$out/lib/openclaw/node_modules"
 
 bash -e -c '. "$STDENV_SETUP"; makeWrapper "$NODE_BIN" "$out/bin/openclaw" --add-flags "$out/lib/openclaw/dist/index.js" --set-default OPENCLAW_NIX_MODE "1"'
