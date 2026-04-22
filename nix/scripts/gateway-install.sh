@@ -135,6 +135,18 @@ if [ ! -e "$out/lib/openclaw/node_modules/openclaw" ]; then
   ln -s .. "$out/lib/openclaw/node_modules/openclaw"
 fi
 
+# Install matrix-sdk-crypto native library for E2E encryption support.
+# The upstream package downloads this at runtime, which fails in Nix (read-only store).
+if [ -n "${MATRIX_CRYPTO_LIB:-}" ] && [ -n "${MATRIX_CRYPTO_LIB_FILENAME:-}" ]; then
+  # Install into every copy of the package — hoisted node_modules AND any
+  # .pnpm store locations — in case either path is hit at runtime.
+  find "$out/lib/openclaw/node_modules" \
+    -path "*/@matrix-org/matrix-sdk-crypto-nodejs" -type d -print 2>/dev/null \
+  | while read -r crypto_pkg; do
+    cp "$MATRIX_CRYPTO_LIB" "$crypto_pkg/$MATRIX_CRYPTO_LIB_FILENAME"
+  done
+fi
+
 log_step "validate node_modules symlinks" check_no_broken_symlinks "$out/lib/openclaw/node_modules"
 
 bash -e -c '. "$STDENV_SETUP"; makeWrapper "$NODE_BIN" "$out/bin/openclaw" --add-flags "$out/lib/openclaw/dist/index.js" --set-default OPENCLAW_NIX_MODE "1"'
